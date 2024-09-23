@@ -46,7 +46,7 @@ public class BeaconScanner {
     }
 
     public void scan(boolean bind, TextView a) {
-        a.setText("Start scanning");
+        a.setText("Scanning...");
         if (bind) {
             mBeaconManager.addRangeNotifier(new RangeNotifier() {
                 @Override
@@ -55,7 +55,7 @@ public class BeaconScanner {
                         Iterator<Beacon> beaconIterator = beacons.iterator();
                         while (beaconIterator.hasNext()) {
                             Beacon beacon = beaconIterator.next();
-                            a.setText(""+beacon.getBluetoothName()+": "+beacon.getBluetoothAddress());
+                            a.setText("Address: "+beacon.getBluetoothAddress()+"\nDistance: "+beacon.getDistance());
                         }
                     }
                 }
