@@ -1,15 +1,10 @@
 package com.example.myapplication;
-
-import android.os.RemoteException;
 import android.widget.TextView;
-
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-
-
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -17,11 +12,13 @@ import java.util.Iterator;
 public class BeaconScanner {
     //singleton
     private static BeaconScanner instance = null;
+    //check if it is scanning
+    boolean scanning=false; //it tells if the scanner is scanning or not
+    TextView a=null;
 
     //Class
     private BeaconManager mBeaconManager;
     private Region mRegion = new Region("region", null, null, null);
-
 
     //if you want to change beacon protocol, modify this method. For more information search "setBeaconLayout" on stackoverflow
     private BeaconScanner() {
@@ -45,9 +42,10 @@ public class BeaconScanner {
         return instance;
     }
 
-    public void scan(boolean bind, TextView a) {
-        a.setText("Scanning...");
+    public void scan(boolean bind) {
+        scanning=bind;
         if (bind) {
+            a.setText("Scanning...");
             mBeaconManager.addRangeNotifier(new RangeNotifier() {
                 @Override
                 public void didRangeBeaconsInRegion(final Collection<Beacon> beacons, Region region) {
@@ -68,5 +66,12 @@ public class BeaconScanner {
         }
     }
 
+    public boolean getScanOnOff(){
+        return scanning;
+    }
+    
+    //I set the textView to show the beacons
+    public void setTextView(TextView t){
+        a=t;
+    }
 }
-
