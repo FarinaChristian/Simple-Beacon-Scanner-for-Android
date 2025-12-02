@@ -10,14 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:text="    Scan off"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
+        tools:ignore="UseSwitchCompatOrMaterialXml"
+        android:layout_marginTop="100px"/>
 
     <TextView
         android:id="@+id/info"
-        android:layout_width="match_parent"
-        android:textAlignment="center"
+        android:layout_width="248dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textAlignment="center" />
 
 </FrameLayout>

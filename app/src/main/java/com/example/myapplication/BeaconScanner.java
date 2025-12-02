@@ -5,6 +5,8 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -12,6 +14,7 @@ import java.util.Iterator;
 public class BeaconScanner {
     //singleton
     private static BeaconScanner instance = null;
+    ArrayList<String>prova=new ArrayList<String>();
     //check if it is scanning
     boolean scanning=false; //it tells if the scanner is scanning or not
     TextView a=null;
@@ -54,7 +57,12 @@ public class BeaconScanner {
                         while (beaconIterator.hasNext()) {
                             Beacon beacon = beaconIterator.next();
                             a.setText("Address: "+beacon.getBluetoothAddress()+"\nDistance: "+beacon.getDistance());
+                            prova.clear();
                         }
+                    }
+                    else{
+                        prova.add("1");
+                        if (prova.size()==3){a.setText("BEEP");prova.clear();}
                     }
                 }
             });

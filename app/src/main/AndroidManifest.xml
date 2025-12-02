@@ -38,4 +38,6 @@
 
     </application>
 
+    <uses-feature android:name="android.hardware.type.watch" android:required="true"/>
+
 </manifest>

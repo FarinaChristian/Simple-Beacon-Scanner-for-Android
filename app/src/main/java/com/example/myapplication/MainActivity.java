@@ -30,21 +30,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        replaceFragment(new HomeFragment());
+        replaceFragment(new ScanFragment());
 
-
-        BottomNavigationView nav=findViewById(R.id.nav);
-
-       nav.setOnNavigationItemSelectedListener(item -> {
-           int itemId= item.getItemId();
-           if (itemId==R.id.home)
-               replaceFragment(new HomeFragment());
-           if (itemId==R.id.scan)
-               replaceFragment(new ScanFragment());
-           if (itemId==R.id.settings)
-               replaceFragment(new SettingsFragment());
-           return true;
-       });
     }
 
     private void replaceFragment(Fragment fragment){
