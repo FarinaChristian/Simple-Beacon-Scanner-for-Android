@@ -37,6 +37,11 @@ public class BeaconScanner {
         mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
         //detect AltBeacon frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+        //mBeaconManager.setForegroundScanPeriod(long p) durata in millisecondi di ogni ciclo di scansione, di default è 1100 ms
+        //mBeaconManager.setForegroundBetweenScanPeriod(long p) tempo tra due cicli di scansione in foreground, di default è 0 ms
+        //mBeaconManager.setBackgroundScanPeriod(long p) durata in millisecondi di ogni ciclo di scansione in background, di default è 10000 ms
+        //mBeaconManager.setBackgroundBetweenScanPeriod(long p) tempo tra due cicli di scansione in foreground background, di default è 3000000 ms (5 min)
+        //mBeaconManager.updateScanPeriods() aggiorna se lo scanner è gia attivo
     }
 
     public static BeaconScanner getInstance() {//singleton pattern, whenever you call it, it always returns the same object
