@@ -1,0 +1,142 @@
+package com.example.myapplication;
+
+import android.bluetooth.*;
+import android.bluetooth.le.*;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.util.Log;
+import android.widget.TextView;
+
+import androidx.core.app.ActivityCompat;
+
+public class ThingyBleManager {
+    TextView a=null;
+    boolean scanning=false;
+
+    private static final String TAG = "BLE";
+
+    private static ThingyBleManager instance;
+
+    private final Context context;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeScanner bleScanner;
+    private BluetoothGatt bluetoothGatt;
+
+    private BleListener listener;
+
+    /* ===== CALLBACK INTERFACE ===== */
+    public interface BleListener {
+        void onStatusChanged(String status);
+    }
+
+    private ThingyBleManager(Context ctx) {
+        context = ctx.getApplicationContext();
+
+        BluetoothManager bluetoothManager =
+                (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+
+        bluetoothAdapter = bluetoothManager.getAdapter();
+        bleScanner = bluetoothAdapter.getBluetoothLeScanner();
+    }
+
+    public static synchronized ThingyBleManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new ThingyBleManager(context);
+        }
+        return instance;
+    }
+
+    public void setListener(BleListener listener) {
+        this.listener = listener;
+    }
+
+    /* ================= SCAN ================= */
+
+    public void startScan() {
+        if (scanning){return;}
+        scanning=true;
+        if (listener != null) {
+            listener.onStatusChanged("Scanning...");
+        }
+        if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        bleScanner.startScan(scanCallback);
+        a.setText("Scanning...");
+    }
+
+    private final ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            BluetoothDevice device = result.getDevice();
+            if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+            if (device.getName() != null && device.getName().contains("Thingy")) {
+                bleScanner.stopScan(this);
+                scanning=false;
+                if (listener != null) {listener.onStatusChanged("Connecting...");}
+                connect(device);
+                a.setText(""+device.getName());
+            }
+        }
+    };
+
+    /* ================= CONNECT ================= */
+
+    private void connect(BluetoothDevice device) {
+        if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+        bluetoothGatt = device.connectGatt(
+                context,
+                false,
+                gattCallback
+        );
+    }
+
+    /* ================= GATT ================= */
+
+    private final BluetoothGattCallback gattCallback =
+            new BluetoothGattCallback() {
+
+                @Override
+                public void onConnectionStateChange(
+                        BluetoothGatt gatt,
+                        int status,
+                        int newState) {
+
+                    if (newState == BluetoothProfile.STATE_CONNECTED) {
+                        Log.d(TAG, "CONNECTED");
+                        if (listener != null) {
+                            listener.onStatusChanged("CONNECTED");
+                        }
+                    }
+                    else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        a.setText("BEEP");
+                        if (listener != null) {
+                            listener.onStatusChanged("DISCONNECTED");
+                        }
+                    }
+                }
+            };
+
+    /* ================= CLEANUP ================= */
+
+    public void close() {
+        if (bluetoothGatt != null) {
+            if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+            bluetoothGatt.close();
+            bluetoothGatt = null;
+        }
+    }
+
+    //I set the textView to show the beacons
+    public void setTextView(TextView t){a=t;}
+
+    public boolean getScanOnOff(){return scanning;}
+
+    public void stopScan(){
+        if(!scanning){return;}
+        scanning=false;
+        if (ActivityCompat.checkSelfPermission(MainActivity.getAppContext(), android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {return;}
+        bleScanner.stopScan(scanCallback);
+        a.setText("Stop");
+    }
+}

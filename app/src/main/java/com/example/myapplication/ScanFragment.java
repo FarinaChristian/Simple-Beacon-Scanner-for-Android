@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 public class ScanFragment extends Fragment {
 
-    private BeaconScanner beaconScanner;
+    private ThingyBleManager beaconScanner;
     Switch switchscan;
     TextView a;
 
@@ -39,7 +39,7 @@ public class ScanFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        beaconScanner=BeaconScanner.getInstance();
+        beaconScanner=ThingyBleManager.getInstance(MainActivity.getAppContext());
         View view = inflater.inflate(R.layout.fragment_scan, container, false);
         a=view.findViewById(R.id.info);//this TextView shows the data of every scanned beacon
         beaconScanner.setTextView(a);
@@ -49,11 +49,11 @@ public class ScanFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     switchscan.setText("    Scan on");
-                    beaconScanner.scan(true);
+                    beaconScanner.startScan();
                 }
                 else {
                     switchscan.setText("    Scan off");
-                    beaconScanner.scan(false);
+                    beaconScanner.stopScan();
                 }
             }
         });
