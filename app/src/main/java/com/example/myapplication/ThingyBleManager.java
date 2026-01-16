@@ -13,8 +13,6 @@ public class ThingyBleManager {
     TextView a=null;
     boolean scanning=false;
 
-    private static final String TAG = "BLE";
-
     private static ThingyBleManager instance;
 
     private final Context context;
@@ -31,14 +29,12 @@ public class ThingyBleManager {
 
     private ThingyBleManager(Context ctx) {
         context = ctx.getApplicationContext();
-
-        BluetoothManager bluetoothManager =
-                (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-
+        BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
         bleScanner = bluetoothAdapter.getBluetoothLeScanner();
     }
 
+    //singleton pattern
     public static synchronized ThingyBleManager getInstance(Context context) {
         if (instance == null) {
             instance = new ThingyBleManager(context);
@@ -58,9 +54,7 @@ public class ThingyBleManager {
         if (listener != null) {
             listener.onStatusChanged("Scanning...");
         }
-        if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {return;}
         bleScanner.startScan(scanCallback);
         a.setText("Scanning...");
     }
@@ -69,7 +63,7 @@ public class ThingyBleManager {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice device = result.getDevice();
-            if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
             if (device.getName() != null && device.getName().contains("Thingy")) {
                 bleScanner.stopScan(this);
                 scanning=false;
@@ -83,12 +77,8 @@ public class ThingyBleManager {
     /* ================= CONNECT ================= */
 
     private void connect(BluetoothDevice device) {
-        if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
-        bluetoothGatt = device.connectGatt(
-                context,
-                false,
-                gattCallback
-        );
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+        bluetoothGatt = device.connectGatt(context, false, gattCallback);
     }
 
     /* ================= GATT ================= */
@@ -103,7 +93,6 @@ public class ThingyBleManager {
                         int newState) {
 
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        Log.d(TAG, "CONNECTED");
                         if (listener != null) {
                             listener.onStatusChanged("CONNECTED");
                         }
@@ -121,7 +110,7 @@ public class ThingyBleManager {
 
     public void close() {
         if (bluetoothGatt != null) {
-            if (ActivityCompat.checkSelfPermission(MainActivity.context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
             bluetoothGatt.close();
             bluetoothGatt = null;
         }
@@ -135,7 +124,7 @@ public class ThingyBleManager {
     public void stopScan(){
         if(!scanning){return;}
         scanning=false;
-        if (ActivityCompat.checkSelfPermission(MainActivity.getAppContext(), android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {return;}
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {return;}
         bleScanner.stopScan(scanCallback);
         a.setText("Stop");
     }
