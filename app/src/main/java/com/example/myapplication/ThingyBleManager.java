@@ -4,12 +4,14 @@ import android.bluetooth.*;
 import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 
-public class ThingyBleManager {
+public class ThingyBleManager{
     TextView a=null;
     boolean scanning=false;
 
@@ -19,8 +21,11 @@ public class ThingyBleManager {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bleScanner;
     private BluetoothGatt bluetoothGatt;
-
     private BleListener listener;
+    // l'handler serve per mandare messaggi ai thread, in questo caso mando messaggi al thread principale (getMainLooper)
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Handler rssiHandler = new Handler(Looper.getMainLooper());
+    private static final long RSSI_UPDATE_INTERVAL = 500; // mezzo secondo
 
     /* ===== CALLBACK INTERFACE ===== */
     public interface BleListener {
@@ -83,31 +88,49 @@ public class ThingyBleManager {
 
     /* ================= GATT ================= */
 
-    private final BluetoothGattCallback gattCallback =
-            new BluetoothGattCallback() {
+    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                startRssiUpdates(gatt);
+            }
+            else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                a.setText("BEEP");
+                if (listener != null) {
+                    listener.onStatusChanged("DISCONNECTED");
+                }
+            }
+        }
+
+        @Override
+        public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if(rssi>-80){
+                    mainHandler.post(() -> {a.setText("RSSI: " + rssi);});// dico al thread principale di eseguire il runnable (codice nelle parentesi)
+                                                                          // lo esegue quando può, il post lo mette in coda
+                }
+                else{
+                    mainHandler.post(() -> {a.setText("BEEP");});
+                }
+            }
+        }
+
+        private void startRssiUpdates(BluetoothGatt gatt) {
+            rssiHandler.post(new Runnable() {
                 @Override
-                public void onConnectionStateChange(
-                        BluetoothGatt gatt,
-                        int status,
-                        int newState) {
-
-                    if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        if (listener != null) {
-                            listener.onStatusChanged("CONNECTED");
-                        }
-                    }
-                    else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        a.setText("BEEP");
-                        if (listener != null) {
-                            listener.onStatusChanged("DISCONNECTED");
-                        }
+                public void run() {
+                    if (gatt != null) {
+                        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
+                        gatt.readRemoteRssi();
+                        rssiHandler.postDelayed(this, RSSI_UPDATE_INTERVAL); // lo eseguo ogni tot tempo
                     }
                 }
-            };
+            });
+        }
+    };
 
     /* ================= CLEANUP ================= */
-
     public void close() {
         if (bluetoothGatt != null) {
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {return;}
